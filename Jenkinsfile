@@ -2,8 +2,6 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'GIT_REPO_URL')
-        string(name: 'GIT_BRANCH', defaultValue: 'main')
         string(name: 'SONAR_PROJECT_KEY')
         string(name: 'DOCKER_IMAGE_NAME')
         string(name: 'EMAIL_RECIPIENTS')
@@ -14,14 +12,6 @@ pipeline {
     }
 
     stages {
-
-        stage('Checkout') {
-            steps {
-                git branch: params.GIT_BRANCH,
-                    url: params.GIT_REPO_URL,
-                    credentialsId: 'github-creds'
-            }
-        }
 
         stage('SonarQube Analysis') {
             steps {
@@ -60,14 +50,14 @@ pipeline {
         failure {
             emailext(
                 subject: "FAILED: Build #${BUILD_NUMBER}",
-                body: "Pipeline failed. Please check Jenkins logs.",
+                body: "Pipeline failed. Check Jenkins logs.",
                 to: params.EMAIL_RECIPIENTS
             )
         }
         aborted {
             emailext(
                 subject: "ABORTED: Build #${BUILD_NUMBER}",
-                body: "Pipeline aborted. Check Jenkins logs.",
+                body: "Pipeline aborted.",
                 to: params.EMAIL_RECIPIENTS
             )
         }
