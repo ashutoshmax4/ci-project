@@ -39,6 +39,7 @@ A fully automated and configurable CI pipeline that:
 
 ## 🏗 High-Level Architecture
 
+```text
 Developer
    |
    v
@@ -56,9 +57,9 @@ Jenkins CI Pipeline
    |
    v
 Email Notification (Success / Failure / Aborted)
+```
 
 ---
-
 ## 📂 Project Directory Structure
 ```text
 ci-project/
