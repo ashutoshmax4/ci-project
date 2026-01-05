@@ -60,6 +60,7 @@ Email Notification (Success / Failure / Aborted)
 ---
 
 ## 📂 Project Directory Structure
+```text
 ci-project/
 │
 ├── Jenkinsfile
@@ -80,7 +81,8 @@ ci-project/
 │
 └── README.md
     └── Project documentation and usage details
----
+```
+
 
 ## ⚙️ Jenkins Setup
 - Jenkins installed on Ubuntu
