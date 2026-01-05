@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'SONAR_PROJECT_KEY', defaultValue: 'ci-project')
-        string(name: 'DOCKER_IMAGE', defaultValue: 'ci-project-image')
-        string(name: 'EMAIL_RECIPIENTS', defaultValue: 'yourmail@gmail.com')
+        string(name: 'GIT_REPO_URL')
+        string(name: 'GIT_BRANCH', defaultValue: 'main')
+        string(name: 'SONAR_PROJECT_KEY')
+        string(name: 'DOCKER_IMAGE_NAME')
+        string(name: 'EMAIL_RECIPIENTS')
     }
 
     environment {
@@ -13,26 +15,28 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                checkout scm
+                git branch: params.GIT_BRANCH,
+                    url: params.GIT_REPO_URL,
+                    credentialsId: 'github-creds'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
+                    sh """
                     ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                      -Dsonar.projectKey=${SONAR_PROJECT_KEY}
-                    '''
+                    -Dsonar.projectKey=${params.SONAR_PROJECT_KEY}
+                    """
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -40,9 +44,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh '''
-                docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .
-                '''
+                sh "docker build -t ${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER} ."
             }
         }
     }
@@ -51,17 +53,23 @@ pipeline {
         success {
             emailext(
                 subject: "SUCCESS: Build #${BUILD_NUMBER}",
-                body: "Docker image built successfully.",
+                body: "Docker image ${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER} built successfully.",
                 to: params.EMAIL_RECIPIENTS
             )
         }
         failure {
             emailext(
                 subject: "FAILED: Build #${BUILD_NUMBER}",
-                body: "Build failed. Check Jenkins logs.",
+                body: "Pipeline failed. Please check Jenkins logs.",
+                to: params.EMAIL_RECIPIENTS
+            )
+        }
+        aborted {
+            emailext(
+                subject: "ABORTED: Build #${BUILD_NUMBER}",
+                body: "Pipeline aborted. Check Jenkins logs.",
                 to: params.EMAIL_RECIPIENTS
             )
         }
     }
 }
-
