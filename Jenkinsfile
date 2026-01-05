@@ -2,11 +2,9 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'GIT_REPO_URL', description: 'GitHub repository URL')
-        string(name: 'GIT_BRANCH', defaultValue: 'main')
-        string(name: 'SONAR_PROJECT_KEY')
-        string(name: 'DOCKER_IMAGE_NAME')
-        string(name: 'EMAIL_RECIPIENTS')
+        string(name: 'SONAR_PROJECT_KEY', defaultValue: 'ci-project')
+        string(name: 'DOCKER_IMAGE', defaultValue: 'ci-project-image')
+        string(name: 'EMAIL_RECIPIENTS', defaultValue: 'yourmail@gmail.com')
     }
 
     environment {
@@ -17,19 +15,17 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: params.GIT_BRANCH,
-                    credentialsId: 'github-creds',
-                    url: params.GIT_REPO_URL
+                checkout scm
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh """
+                    sh '''
                     ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                    -Dsonar.projectKey=${params.SONAR_PROJECT_KEY}
-                    """
+                      -Dsonar.projectKey=${SONAR_PROJECT_KEY}
+                    '''
                 }
             }
         }
@@ -44,9 +40,9 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh """
-                docker build -t ${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER} .
-                """
+                sh '''
+                docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .
+                '''
             }
         }
     }
@@ -54,18 +50,18 @@ pipeline {
     post {
         success {
             emailext(
-                subject: "SUCCESS: Jenkins Build #${BUILD_NUMBER}",
-                body: "Docker image ${params.DOCKER_IMAGE_NAME}:${BUILD_NUMBER} built successfully.",
+                subject: "SUCCESS: Build #${BUILD_NUMBER}",
+                body: "Docker image built successfully.",
                 to: params.EMAIL_RECIPIENTS
             )
         }
-
         failure {
             emailext(
-                subject: "FAILED: Jenkins Build #${BUILD_NUMBER}",
-                body: "Pipeline failed. Please check Jenkins logs.",
+                subject: "FAILED: Build #${BUILD_NUMBER}",
+                body: "Build failed. Check Jenkins logs.",
                 to: params.EMAIL_RECIPIENTS
             )
         }
     }
 }
+
