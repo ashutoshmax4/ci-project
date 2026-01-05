@@ -39,19 +39,47 @@ A fully automated and configurable CI pipeline that:
 
 ## 🏗 High-Level Architecture
 
+Developer
+   |
+   v
+GitHub Repository
+   |
+   v
+Jenkins CI Pipeline
+   |
+   +--> SonarQube Code Analysis
+   |        |
+   |        v
+   |   Quality Gate Check
+   |
+   +--> Docker Image Build (Only if Quality Gate PASSES)
+   |
+   v
+Email Notification (Success / Failure / Aborted)
+
 ---
 
 ## 📂 Project Directory Structure
 ci-project/
+│
 ├── Jenkinsfile
+│   └── Declarative Jenkins pipeline for CI automation
+│
 ├── Dockerfile
+│   └── Defines Docker image build steps for the application
+│
 ├── sonar-project.properties
+│   └── SonarQube project configuration file
+│
 ├── requirements.txt
-└── src/
-└── app.py
-
-
-
+│   └── Python application dependencies
+│
+├── src/
+│   └── app.py
+│       └── Sample Python application source code
+│
+└── README.md
+    └── Project documentation and usage details
 ---
 
 ## ⚙️ Jenkins Setup
