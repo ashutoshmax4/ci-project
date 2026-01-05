@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent
 
     parameters {
         string(name: 'SONAR_PROJECT_KEY')
